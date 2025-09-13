@@ -1,7 +1,11 @@
 package vn.hoidanit.jobhunter.domain.dto;
 
+import jakarta.validation.constraints.NotBlank;
+
 public class LoginDTO {
+    @NotBlank(message = "userName must not be null")
     private String userName;
+    @NotBlank(message = "password must not be null")
     private String password;
 
     public String getUserName() {

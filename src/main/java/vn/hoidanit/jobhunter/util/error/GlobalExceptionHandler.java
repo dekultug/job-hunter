@@ -1,7 +1,9 @@
-package vn.hoidanit.jobhunter.service.error;
+package vn.hoidanit.jobhunter.util.error;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -10,8 +12,11 @@ import vn.hoidanit.jobhunter.domain.RestResponse;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(value = IdValidException.class)
-    public ResponseEntity<RestResponse<Object>> handIdException(IdValidException exception) {
+    @ExceptionHandler(value = MethodArgumentNotValidException.class)
+    public ResponseEntity<RestResponse<Object>> handIdException(MethodArgumentNotValidException exception) {
+
+        BindingResult result = exception.getBindingResult();
+
         RestResponse<Object> rest = new RestResponse<Object>();
         rest.setStatus(HttpStatus.BAD_REQUEST.value());
         rest.setError(exception.getMessage());
