@@ -34,7 +34,7 @@ public class UserService {
     }
 
     public User getUserByEmail(String email) {
-        Optional<User> optional = userRepository.findUserByEmail(email);
+        Optional<User> optional = userRepository.findByEmail(email);
         return optional.get();
     }
 
