@@ -14,8 +14,8 @@ public class CompaniesService {
         this.companiesRepo = companiesRepo;
     }
 
-    public void createCompanies(Company company) {
-        companiesRepo.save(company);
+    public Company createCompanies(Company company) {
+        return companiesRepo.save(company);
     }
 
 }

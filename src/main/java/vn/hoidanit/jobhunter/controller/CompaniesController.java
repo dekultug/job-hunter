@@ -20,8 +20,7 @@ public class CompaniesController {
 
     @PostMapping("/companies")
     Company createCompany(@RequestBody Company company) {
-        companiesService.createCompanies(company);
-        return company;
+        return companiesService.createCompanies(company);
     }
 
 }
