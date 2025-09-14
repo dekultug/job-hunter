@@ -84,10 +84,10 @@ public class SecurityConfiguration {
                         .authenticationEntryPoint(
                                 customAuthenticationEntryPoint))
 
-                .exceptionHandling(
-                        exceptions -> exceptions
-                                .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint()) // 401
-                                .accessDeniedHandler(new BearerTokenAccessDeniedHandler())) // 403
+                // .exceptionHandling(
+                // exceptions -> exceptions
+                // .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint()) // 401
+                // .accessDeniedHandler(new BearerTokenAccessDeniedHandler())) // 403
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         return http.build();
     }
