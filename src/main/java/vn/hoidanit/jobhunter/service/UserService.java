@@ -3,6 +3,8 @@ package vn.hoidanit.jobhunter.service;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import vn.hoidanit.jobhunter.domain.User;
@@ -29,8 +31,9 @@ public class UserService {
         return userRepository.findById(userId);
     }
 
-    public List<User> getListUser() {
-        return userRepository.findAll();
+    public List<User> getListUser(Pageable pageable) {
+        Page<User> pageUser = userRepository.findAll(pageable);
+        return pageUser.getContent();
     }
 
     public User getUserByEmail(String email) {

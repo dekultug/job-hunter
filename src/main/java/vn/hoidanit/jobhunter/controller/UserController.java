@@ -3,6 +3,8 @@ package vn.hoidanit.jobhunter.controller;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import vn.hoidanit.jobhunter.domain.User;
@@ -61,7 +64,18 @@ public class UserController {
     }
 
     @GetMapping("user/getList")
-    public ResponseEntity<List<User>> getListUser() {
-        return ResponseEntity.status(HttpStatus.OK).body(userService.getListUser());
+    public ResponseEntity<List<User>> getListUser(
+            @RequestParam("current") Optional<String> currentOptional,
+            @RequestParam("pageSize") Optional<String> pageSizeOptional) {
+
+        String sCurrent = currentOptional.isPresent() ? currentOptional.get() : "1";
+        String sPageSize = pageSizeOptional.isPresent() ? pageSizeOptional.get() : "1";
+
+        int current = Integer.parseInt(sCurrent);
+        int pageSize = Integer.parseInt(sPageSize);
+
+        Pageable pageable = PageRequest.of(current - 1, pageSize);
+
+        return ResponseEntity.status(HttpStatus.OK).body(userService.getListUser(pageable));
     }
 }
