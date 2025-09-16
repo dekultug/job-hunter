@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import vn.hoidanit.jobhunter.domain.User;
@@ -31,8 +32,8 @@ public class UserService {
         return userRepository.findById(userId);
     }
 
-    public List<User> getListUser(Pageable pageable) {
-        Page<User> pageUser = userRepository.findAll(pageable);
+    public List<User> getListUser(Specification<User> specification, Pageable pageable) {
+        Page<User> pageUser = userRepository.findAll(specification, pageable);
         return pageUser.getContent();
     }
 

@@ -3,7 +3,9 @@ package vn.hoidanit.jobhunter.service;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import vn.hoidanit.jobhunter.domain.Company;
@@ -22,8 +24,8 @@ public class CompaniesService {
         return companiesRepo.save(company);
     }
 
-    public List<Company> getList(Pageable pageable) {
-        return companiesRepo.findAll(pageable).getContent();
+    public List<Company> getList(Specification<Company> spec, Pageable pageable) {
+        return companiesRepo.findAll(spec, pageable).getContent();
     }
 
     public Optional<Company> getCompanyById(long id) {

@@ -31,6 +31,7 @@ dependencies {
 
 	 compileOnly("org.projectlombok:lombok:1.18.40")
     annotationProcessor("org.projectlombok:lombok:1.18.40")
+	implementation("com.turkraft.springfilter:jpa:3.1.7")
 
     testCompileOnly("org.projectlombok:lombok:1.18.40")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.40")
