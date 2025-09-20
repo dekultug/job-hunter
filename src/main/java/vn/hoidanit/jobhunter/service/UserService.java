@@ -117,4 +117,13 @@ public class UserService {
         return res;
     }
 
+    public void updateUserToken(String token, String email){    
+        User currentUser  = getUserByEmail(email);
+        if (currentUser != null) {
+            currentUser.setRefreshToken(token);
+            handleCreateUser(currentUser);
+        }
+
+    }
+
 }

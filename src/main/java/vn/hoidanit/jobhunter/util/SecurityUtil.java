@@ -22,6 +22,8 @@ import org.springframework.stereotype.Service;
 
 import com.nimbusds.jose.util.Base64;
 
+import vn.hoidanit.jobhunter.domain.dto.ResLoginDTO;
+
 @Service
 public class SecurityUtil {
 
@@ -31,15 +33,18 @@ public class SecurityUtil {
         this.jwtEncoder = jwtEncoder;
     }
 
-    @Value("${hoidanit.jwt.token-validity-in-seconds}")
-    private Long jwtExpire;
+    @Value("${hoidanit.jwt.access-token-validity-in-seconds}")
+    private Long accessTokenExpire;
+
+    @Value("${hoidanit.jwt.refresh-token-validity-in-seconds}")
+    private Long refreshTokenExpire;
 
     public static final MacAlgorithm JWT_ALGORITHM = MacAlgorithm.HS512;
 
-    public String createToken(Authentication authentication) {
+    public String createAccessToken(Authentication authentication) {
 
         Instant now = Instant.now();
-        Instant validity = now.plus(this.jwtExpire, ChronoUnit.SECONDS);
+        Instant validity = now.plus(this.accessTokenExpire, ChronoUnit.SECONDS);
 
         // @formatter:off
         JwtClaimsSet claims = JwtClaimsSet.builder()
@@ -47,6 +52,23 @@ public class SecurityUtil {
             .expiresAt(validity)
             .subject(authentication.getName())
             .claim("hoidanit", authentication)
+            .build();
+
+        JwsHeader jwsHeader = JwsHeader.with(JWT_ALGORITHM).build();
+        return this.jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader, claims)).getTokenValue();
+    }
+
+ public String createRefreshToken(String email, ResLoginDTO resLoginDTO) {
+
+        Instant now = Instant.now();
+        Instant validity = now.plus(this.refreshTokenExpire, ChronoUnit.SECONDS);
+
+        // @formatter:off
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+            .issuedAt(now)
+            .expiresAt(validity)
+            .subject(email)
+            .claim("user", resLoginDTO.getUserLogin())
             .build();
 
         JwsHeader jwsHeader = JwsHeader.with(JWT_ALGORITHM).build();
