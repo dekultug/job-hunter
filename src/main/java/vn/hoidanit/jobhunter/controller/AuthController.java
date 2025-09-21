@@ -10,18 +10,26 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.servlet.http.Cookie;
 import jakarta.validation.Valid;
+import vn.hoidanit.jobhunter.domain.RestResponse;
 import vn.hoidanit.jobhunter.domain.User;
 import vn.hoidanit.jobhunter.domain.dto.LoginDTO;
 import vn.hoidanit.jobhunter.domain.dto.ResLoginDTO;
 import vn.hoidanit.jobhunter.domain.dto.ResLoginDTO.UserLogin;
 import vn.hoidanit.jobhunter.service.UserService;
 import vn.hoidanit.jobhunter.util.SecurityUtil;
+import vn.hoidanit.jobhunter.util.error.IdValidException;
+
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -31,7 +39,7 @@ public class AuthController {
     private final SecurityUtil securityUtil;
     private final UserService userService;
 
-     @Value("${hoidanit.jwt.refresh-token-validity-in-seconds}")
+    @Value("${hoidanit.jwt.refresh-token-validity-in-seconds}")
     private Long refreshTokenExpire;
 
     public AuthController(AuthenticationManagerBuilder authenticationManagerBuilder, SecurityUtil securityUtil,
@@ -41,7 +49,7 @@ public class AuthController {
         this.userService = userService;
     }
 
-    @PostMapping("/login")
+    @PostMapping("/auth/login")
     public ResponseEntity<ResLoginDTO> login(@Valid @RequestBody LoginDTO loginDTO) {
 
         // Nạp input gồm username/password vào Security
@@ -52,12 +60,14 @@ public class AuthController {
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
         // // create token
-        String accessToken = securityUtil.createAccessToken(authentication);
+        // set thông tin vào sercurity holder
         SecurityContextHolder.getContext().setAuthentication(authentication);
+
         ResLoginDTO resLoginDTO = new ResLoginDTO();
         User userDB = userService.getUserByEmail(loginDTO.getUserName());
         ResLoginDTO.UserLogin userLogin = new UserLogin(userDB.getId(), userDB.getEmail(), userDB.getName());
         resLoginDTO.setUserLogin(userLogin);
+        String accessToken = securityUtil.createAccessToken(authentication.getName(), userLogin);
         resLoginDTO.setAccessToken(accessToken);
 
         // refresh
@@ -66,14 +76,82 @@ public class AuthController {
 
         // set cookies
         ResponseCookie responseCookie = ResponseCookie
-        .from("refresh_token", refreshToken)
-        .httpOnly(true)
-        .secure(true)
-        .path("/")
-        .maxAge(refreshTokenExpire)
-        .build();
+                .from("refresh_token", refreshToken)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(refreshTokenExpire)
+                .build();
 
         return ResponseEntity.ok().header(org.springframework.http.HttpHeaders.SET_COOKIE, responseCookie.toString())
                 .body(resLoginDTO);
     }
+
+    @GetMapping("/auth/account")
+    public ResLoginDTO.UserLogin getAccount() {
+        String email = SecurityUtil.getCurrentUserLogin().isPresent() ? SecurityUtil.getCurrentUserLogin().get() : "";
+        User user = userService.getUserByEmail(email);
+        UserLogin userLogin = new UserLogin();
+        userLogin.setName(user.getName());
+        userLogin.setId(user.getId());
+        userLogin.setEmail(email);
+        return userLogin;
+    }
+
+    @GetMapping("/auth/refresh")
+    public ResponseEntity<ResLoginDTO> getRefreshToken(
+        @CookieValue(name = "refresh_token") String refreshToken
+    ) throws IdValidException {
+        // check valid
+        Jwt decodeToken = securityUtil.checkValidRefreshToken(refreshToken);
+        String email = decodeToken.getSubject();
+        User currentUser = userService.getUserByTokenAndEmail(refreshToken, email);
+        if (currentUser == null) {
+            throw new IdValidException("refresh token ko hop le");
+        }
+
+
+        // new token
+        ResLoginDTO resLoginDTO = new ResLoginDTO();
+        User userDB = userService.getUserByEmail(email);
+        ResLoginDTO.UserLogin userLogin = new UserLogin(userDB.getId(), userDB.getEmail(), userDB.getName());
+        resLoginDTO.setUserLogin(userLogin);
+        String accessToken = securityUtil.createAccessToken(email, userLogin);
+        resLoginDTO.setAccessToken(accessToken);
+
+        // refresh
+        String newRefreshToken = securityUtil.createRefreshToken(email, resLoginDTO);
+        userService.updateUserToken(newRefreshToken, email);
+
+        // set cookies
+        ResponseCookie responseCookie = ResponseCookie
+                .from("refresh_token", newRefreshToken)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(refreshTokenExpire)
+                .build();
+
+        return ResponseEntity.ok().header(org.springframework.http.HttpHeaders.SET_COOKIE, responseCookie.toString())
+                .body(resLoginDTO);
+    }
+
+    @PostMapping("/account/logout")
+    public ResponseEntity<Void> logOut() throws IdValidException{
+        String email = SecurityUtil.getCurrentUserLogin().isPresent() ? SecurityUtil.getCurrentUserLogin().get() : "";
+        if (email.isEmpty()) {
+            throw new IdValidException("log out email error");
+        }
+        userService.updateUserToken(null, email);
+          ResponseCookie responseCookie = ResponseCookie
+                .from("refresh_token", null)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(refreshTokenExpire)
+                .build();
+          return ResponseEntity.ok().header(org.springframework.http.HttpHeaders.SET_COOKIE, responseCookie.toString())
+                .body(null);
+    }
+
 }

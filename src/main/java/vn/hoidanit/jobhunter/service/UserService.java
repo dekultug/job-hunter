@@ -123,7 +123,9 @@ public class UserService {
             currentUser.setRefreshToken(token);
             handleCreateUser(currentUser);
         }
-
     }
 
+    public User getUserByTokenAndEmail(String token, String email){
+        return userRepository.findUserByRefreshTokenAndEmail(token, email);
+    }
 }
