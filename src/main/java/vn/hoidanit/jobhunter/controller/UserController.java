@@ -83,7 +83,7 @@ public class UserController {
         }
     }
 
-    @GetMapping("user/getList")
+    @GetMapping("users")
     @ApiMessage("fetch list user")
     public ResponseEntity<List<ResUserDTO>> getListUser(
             @Filter Specification<User> spec,

@@ -24,6 +24,7 @@ import vn.hoidanit.jobhunter.domain.RestResponse;
 import vn.hoidanit.jobhunter.domain.User;
 import vn.hoidanit.jobhunter.domain.dto.LoginDTO;
 import vn.hoidanit.jobhunter.domain.dto.ResLoginDTO;
+import vn.hoidanit.jobhunter.domain.dto.ResLoginDTO.UserGetAccount;
 import vn.hoidanit.jobhunter.domain.dto.ResLoginDTO.UserLogin;
 import vn.hoidanit.jobhunter.service.UserService;
 import vn.hoidanit.jobhunter.util.SecurityUtil;
@@ -88,20 +89,21 @@ public class AuthController {
     }
 
     @GetMapping("/auth/account")
-    public ResLoginDTO.UserLogin getAccount() {
+    public ResLoginDTO.UserGetAccount getAccount() {
         String email = SecurityUtil.getCurrentUserLogin().isPresent() ? SecurityUtil.getCurrentUserLogin().get() : "";
         User user = userService.getUserByEmail(email);
         UserLogin userLogin = new UserLogin();
+        UserGetAccount userGetAccount = new UserGetAccount();
         userLogin.setName(user.getName());
         userLogin.setId(user.getId());
         userLogin.setEmail(email);
-        return userLogin;
+        userGetAccount.setUserLogin(userLogin);
+        return userGetAccount;
     }
 
     @GetMapping("/auth/refresh")
     public ResponseEntity<ResLoginDTO> getRefreshToken(
-        @CookieValue(name = "refresh_token") String refreshToken
-    ) throws IdValidException {
+            @CookieValue(name = "refresh_token") String refreshToken) throws IdValidException {
         // check valid
         Jwt decodeToken = securityUtil.checkValidRefreshToken(refreshToken);
         String email = decodeToken.getSubject();
@@ -109,7 +111,6 @@ public class AuthController {
         if (currentUser == null) {
             throw new IdValidException("refresh token ko hop le");
         }
-
 
         // new token
         ResLoginDTO resLoginDTO = new ResLoginDTO();
@@ -137,20 +138,20 @@ public class AuthController {
     }
 
     @PostMapping("/account/logout")
-    public ResponseEntity<Void> logOut() throws IdValidException{
+    public ResponseEntity<Void> logOut() throws IdValidException {
         String email = SecurityUtil.getCurrentUserLogin().isPresent() ? SecurityUtil.getCurrentUserLogin().get() : "";
         if (email.isEmpty()) {
             throw new IdValidException("log out email error");
         }
         userService.updateUserToken(null, email);
-          ResponseCookie responseCookie = ResponseCookie
+        ResponseCookie responseCookie = ResponseCookie
                 .from("refresh_token", null)
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
                 .maxAge(refreshTokenExpire)
                 .build();
-          return ResponseEntity.ok().header(org.springframework.http.HttpHeaders.SET_COOKIE, responseCookie.toString())
+        return ResponseEntity.ok().header(org.springframework.http.HttpHeaders.SET_COOKIE, responseCookie.toString())
                 .body(null);
     }
 

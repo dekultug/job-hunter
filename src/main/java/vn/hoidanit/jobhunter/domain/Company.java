@@ -36,7 +36,7 @@ public class Company {
 
     private String logo;
 
-    @JsonFormat(pattern = "yyyy-MM-đ HH:mm:ss a", timezone = "GMT+7")
+    // @JsonFormat(pattern = "yyyy-MM-đ HH:mm:ss a", timezone = "GMT+7")
     private Instant createdAt;
 
     private Instant updatedAt;
@@ -60,6 +60,5 @@ public class Company {
                 : "";
         this.updatedAt = Instant.now();
     }
-    
 
 }

@@ -1,9 +1,12 @@
 package vn.hoidanit.jobhunter.domain.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import jakarta.validation.constraints.NotBlank;
 
 public class LoginDTO {
     @NotBlank(message = "userName must not be null")
+    @JsonProperty("username")
     private String userName;
     @NotBlank(message = "password must not be null")
     private String password;
