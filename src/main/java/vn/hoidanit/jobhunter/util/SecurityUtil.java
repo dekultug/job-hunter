@@ -25,7 +25,7 @@ import org.springframework.stereotype.Service;
 
 import com.nimbusds.jose.util.Base64;
 
-import vn.hoidanit.jobhunter.domain.dto.ResLoginDTO;
+import vn.hoidanit.jobhunter.domain.response.ResLoginDTO;
 
 @Service
 public class SecurityUtil {
@@ -43,7 +43,7 @@ public class SecurityUtil {
     private Long refreshTokenExpire;
 
     @Value("${hoidanit.jwt.base64-secret}")
-    private  String jwtKey;
+    private String jwtKey;
 
     public static final MacAlgorithm JWT_ALGORITHM = MacAlgorithm.HS512;
 
