@@ -23,10 +23,12 @@ import org.springframework.web.bind.annotation.RestController;
 import com.turkraft.springfilter.boot.Filter;
 
 import jakarta.validation.Valid;
+import vn.hoidanit.jobhunter.domain.Company;
 import vn.hoidanit.jobhunter.domain.User;
 import vn.hoidanit.jobhunter.domain.response.ResCreateUserDTO;
 import vn.hoidanit.jobhunter.domain.response.ResUpdateUserDTO;
 import vn.hoidanit.jobhunter.domain.response.ResUserDTO;
+import vn.hoidanit.jobhunter.domain.response.ResCreateUserDTO.CompanyUser;
 import vn.hoidanit.jobhunter.service.UserService;
 import vn.hoidanit.jobhunter.util.anotation.ApiMessage;
 import vn.hoidanit.jobhunter.util.error.IdValidException;
@@ -59,7 +61,9 @@ public class UserController {
         }
         User requestUser = user;
         requestUser.setPassword(passwordEncoder.encode(user.getPassword()));
+        requestUser.setCompany(user.getCompany());
         User responseUser = userService.handleCreateUser(requestUser);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.convertUserToResCreateUserDTO(responseUser));
     }
 
